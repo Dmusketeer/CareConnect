@@ -59,51 +59,216 @@ const loginController = async (req, res) => {
   }
 };
 
+// User Authentication
 const authController = async (req, res) => {
   try {
-  } catch (error) {}
+    const user = await userModel.findById({ _id: req.body.userId });
+    user.password = undefined;
+    if (!user) {
+      return res.status(200).send({
+        message: "user not found",
+        success: false,
+      });
+    } else {
+      res.status(200).send({
+        success: true,
+        data: user,
+      });
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({
+      message: "Authentication Error",
+      success: false,
+      error,
+    });
+  }
 };
 
 //apply doc controller
 const applyDoctorController = async (req, res) => {
   try {
-  } catch (error) {}
+    const newDoctor = await doctorModel({ ...req.body, status: "pending" });
+    await newDoctor.save();
+    const adminUser = await userModel.findOne({ isAdmin: true });
+    const notifcation = adminUser.notifcation;
+    notifcation.push({
+      type: "apply-doctor-request",
+      message: `${newDoctor.firstName} ${newDoctor.lastName} Has Applied For A Doctor Account`,
+      data: {
+        doctorId: newDoctor._id,
+        name: newDoctor.firstName + " " + newDoctor.lastName,
+        onClickPath: "/admin/doctors",
+      },
+    });
+    await userModel.findByIdAndUpdate(adminUser._id, { notifcation });
+    res.status(201).send({
+      success: true,
+      message: "Doctor Account Applied SUccessfully",
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({
+      success: false,
+      error,
+      message: "Error While Applying For Doctotr",
+    });
+  }
 };
 
 // notification
 const getAllNotificationController = async (req, res) => {
   try {
-  } catch (error) {}
+    const user = await userModel.findOne({ _id: req.body.userId });
+    const seennotification = user.seennotification;
+    const notifcation = user.notifcation;
+    seennotification.push(...notifcation);
+    user.notifcation = [];
+    user.seennotification = notifcation;
+    const updatedUser = await user.save();
+    res.status(200).send({
+      success: true,
+      message: "all notification marked as read",
+      data: updatedUser,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({
+      message: "Error in notification",
+      success: false,
+      error,
+    });
+  }
 };
 
 // delete notifications
 const deleteAllNotificationController = async (req, res) => {
   try {
-  } catch (error) {}
+    const user = await userModel.findOne({ _id: req.body.userId });
+    user.notifcation = [];
+    user.seennotification = [];
+    const updatedUser = await user.save();
+    updatedUser.password = undefined;
+    res.status(200).send({
+      success: true,
+      message: "Notifications Deleted successfully",
+      data: updatedUser,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({
+      success: false,
+      message: "unable to delete all notifications",
+      error,
+    });
+  }
 };
 
 // get all doctors appointment
 const getAllDocotrsController = async (req, res) => {
   try {
-  } catch (error) {}
+    const doctors = await doctorModel.findOne({ status: "approved" });
+    res.status(200).send({
+      success: true,
+      message: "Docots Lists Fetched Successfully",
+      data: doctors,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({
+      success: false,
+      error,
+      message: "Error While Fetching Doctors",
+    });
+  }
 };
 
-// Book appointment
+// Book Appointment
 const bookeAppointmnetController = async (req, res) => {
   try {
-  } catch (error) {}
+    req.body.date = moment(req.body.date, "DD-MM-YYYY").toISOString();
+    req.body.time = moment(req.body.time, "HH:mm").toISOString();
+    req.body.status = "pending";
+    const newAppointment = new appointmentModel(req.body);
+    await newAppointment.save();
+    const user = await userModel.findOne({ _id: req.body.doctorInfo.userId });
+    user.notifcation.push({
+      type: "New-appointment-request",
+      message: `A nEw Appointment Request from ${req.body.userInfo.name}`,
+      onCLickPath: "/user/appointments",
+    });
+    await user.save();
+    res.status(200).send({
+      success: true,
+      message: "Appointment Book succesfully",
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({
+      success: false,
+      error,
+      message: "Error While Booking Appointment",
+    });
+  }
 };
 
 // check booking availability
 const bookingAvailabilityController = async (req, res) => {
   try {
-  } catch (error) {}
+    const date = moment(req.body.date, "DD-MM-YY").toISOString();
+    const fromTime = moment(req.body.time, "HH:mm")
+      .subtract(1, "hours")
+      .toISOString();
+    const toTime = moment(req.body.time, "HH:mm").add(1, "hours").toISOString();
+    const doctorId = req.body.doctorId;
+    const appointments = await appointmentModel.find({
+      doctorId,
+      date,
+      time: {
+        $gte: fromTime,
+        $lte: toTime,
+      },
+    });
+    if (appointments.length > 0) {
+      return res.status(200).send({
+        message: "Appointments not Availibale at this time",
+        success: true,
+      });
+    } else {
+      return res.status(200).send({
+        success: true,
+        message: "Appointments available",
+      });
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({
+      success: false,
+      error,
+      message: "Error In Booking",
+    });
+  }
 };
 
 // user appointment
 const userAppointmentsController = async (req, res) => {
   try {
-  } catch (error) {}
+    const appointments = await appointmentModel.find({
+      userId: req.body.userId,
+    });
+    res.status(200).send({
+      success: true,
+      message: "Users Appointments Fetch SUccessfully",
+      data: appointments,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({
+      success: false,
+      error,
+      message: "Error In User Appointments",
+    });
+  }
 };
 
 module.exports = {
