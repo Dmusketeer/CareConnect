@@ -22,8 +22,8 @@ app.use(moragan("dev"));
 
 //routes
 app.use("/api/v1/user", require("./routes/userRoutes"));
-// app.use("/api/v1/admin", require("./routes/adminRoutes"));
-// app.use("/api/v1/doctor", require("./routes/doctorRoutes"));
+app.use("/api/v1/admin", require("./routes/adminRoutes"));
+app.use("/api/v1/doctor", require("./routes/doctorRoutes"));
 
 //listen port
 app.listen(port, () => {
