@@ -1,7 +1,7 @@
-CareConnect
+MedAppoint
 =========
 
-Welcome to CareConnect, the ultimate platform for connecting patients with healthcare providers. Our mission is to make healthcare more accessible, affordable, and convenient for everyone.
+Welcome to MedAppoint, the ultimate platform for connecting patients with healthcare providers. Our mission is to make healthcare more accessible, affordable, and convenient for everyone.
 
 Features
 --------
@@ -31,11 +31,9 @@ How it Works
 Get Started
 ------------
 
-Ready to take the first step towards better health? Sign up for CareConnect today and start connecting with healthcare providers.
+Ready to take the first step towards better health? Sign up for MedAppoint today and start connecting with healthcare providers.
 
 Contact Us
 ------------
 
 If you have any questions or feedback, please don't hesitate to contact us. We're always here to help.
-
-Thank you for choosing CareConnect.
